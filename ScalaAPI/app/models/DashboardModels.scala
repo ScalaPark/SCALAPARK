@@ -67,3 +67,22 @@ case class AnalystLatestReport(
 )
 object AnalystLatestReport:
   given OFormat[AnalystLatestReport] = Json.format[AnalystLatestReport]
+case class AnalystLatestReport(
+  generatedAt: String,
+  totalOrders: Long,
+  totalRevenue: Long,
+  averageRevenuePerOrder: Double,
+  averageItemsPerOrder: Double,
+  averageTicketSize: Double,
+  creditPurchaseRatio: Double,
+  topProducts: Seq[TopProductView],
+  customerSegments: Seq[SegmentView],
+  topCategoriesByRevenue: Seq[CategoryView],
+  topCitiesByOrders: Seq[CityView],
+  topDepartmentsByRevenue: Seq[DepartmentView],
+  hourlyDistribution: Seq[HourBucketView],
+  installmentsDistribution: Seq[InstallmentsBucketView],
+  currencyDistribution: Seq[CurrencyBucketView]
+)
+object AnalystLatestReport:
+  given OFormat[AnalystLatestReport] = Json.format[AnalystLatestReport]

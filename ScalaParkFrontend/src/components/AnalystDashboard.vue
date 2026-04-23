@@ -7,6 +7,9 @@ interface DailyStats {
   avgOrderValue: number
   newCustomers: number
   totalOrders: number
+  averageItemsPerOrder: number
+  averageTicketSize: number
+  creditPurchaseRatio: number
 }
 
 interface Product {
@@ -22,22 +25,68 @@ interface Segment {
   color: string
 }
 
+interface Category {
+  id: string
+  name: string
+  revenue: number
+}
+
+interface City {
+  id: string
+  name: string
+  orders: number
+}
+
+interface Hour {
+  hour: number
+  orders: number
+}
+
+interface Installment {
+  installments: number
+  orders: number
+}
+
+interface Currency {
+  currency: string
+  orders: number
+}
+
 const dailyStats = ref<DailyStats>({
   totalRevenue: 0,
   avgOrderValue: 0,
   newCustomers: 0,
-  totalOrders: 0
+  totalOrders: 0,
+  averageItemsPerOrder: 0,
+  averageTicketSize: 0,
+  creditPurchaseRatio: 0
 })
 
 const topProducts = ref<Product[]>([])
-
 const customerSegments = ref<Segment[]>([])
+const topCategories = ref<Category[]>([])
+const topCities = ref<City[]>([])
+const hourlyDistribution = ref<Hour[]>([])
+const installmentsDistribution = ref<Installment[]>([])
+const currencyDistribution = ref<Currency[]>([])
 
 let statsInterval: ReturnType<typeof setInterval> | null = null
 let stream: EventSource | null = null
 
 const maxProductSales = computed(() => {
   return Math.max(...topProducts.value.map((p) => p.sales), 1)
+})
+
+const maxCategoryRevenue = computed(() => {
+  return Math.max(...topCategories.value.map((c) => c.revenue), 1)
+})
+
+const maxCityOrders = computed(() => {
+  return Math.max(...topCities.value.map((c) => c.orders), 1)
+})
+
+const maxHourlyOrders = computed(() => {
+  return Math.max(...hourlyDistribution.value.map((h) => h.orders), 1)
 })
 
 const donutStyle = computed(() => {
@@ -69,9 +118,19 @@ const fetchLatestReport = async () => {
     const report = (await response.json()) as {
       topProducts: Product[]
       customerSegments: Segment[]
+      topCategories: Category[]
+      topCities: City[]
+      hourlyDistribution: Hour[]
+      installmentsDistribution: Installment[]
+      currencyDistribution: Currency[]
     }
     topProducts.value = report.topProducts ?? []
     customerSegments.value = report.customerSegments ?? []
+    topCategories.value = report.topCategories ?? []
+    topCities.value = report.topCities ?? []
+    hourlyDistribution.value = report.hourlyDistribution ?? []
+    installmentsDistribution.value = report.installmentsDistribution ?? []
+    currencyDistribution.value = report.currencyDistribution ?? []
   } catch {
     // Keep previous values while backend reconnects.
   }
@@ -132,6 +191,24 @@ onUnmounted(() => {
         subtitle="Source: orders-validated topic"
         icon="total"
       />
+
+      <MetricCard
+        title="Avg Items Per Order"
+        :value="dailyStats.averageItemsPerOrder.toFixed(1)"
+        icon="valid"
+      />
+
+      <MetricCard
+        title="Avg Ticket Size"
+        :value="`$${dailyStats.averageTicketSize.toFixed(2)}`"
+        icon="total"
+      />
+
+      <MetricCard
+        title="Credit Purchase Ratio"
+        :value="`${(dailyStats.creditPurchaseRatio * 100).toFixed(1)}%`"
+        icon="valid"
+      />
     </div>
 
     <div class="grid analyst-grid-2 gap-6">
@@ -167,6 +244,68 @@ onUnmounted(() => {
               <span class="text-gray-400">{{ segment.value }}%</span>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 rounded-xl p-6 backdrop-blur-sm">
+        <h3 class="text-lg font-bold text-white mb-4">Top 5 Categories (Revenue)</h3>
+        <div class="space-y-3">
+          <div v-for="cat in topCategories" :key="cat.id" class="space-y-2">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-300">{{ cat.name }}</span>
+              <span class="text-gray-400">${{ cat.revenue.toLocaleString() }}</span>
+            </div>
+            <div class="h-2 bg-gray-700 rounded overflow-hidden">
+              <div class="h-2 bg-brand-60 rounded" :style="{ width: `${(cat.revenue / maxCategoryRevenue) * 100}%` }" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 rounded-xl p-6 backdrop-blur-sm">
+        <h3 class="text-lg font-bold text-white mb-4">Top 5 Cities (Orders)</h3>
+        <div class="space-y-3">
+          <div v-for="city in topCities" :key="city.id" class="space-y-2">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-gray-300">{{ city.name }}</span>
+              <span class="text-gray-400">{{ city.orders }}</span>
+            </div>
+            <div class="h-2 bg-gray-700 rounded overflow-hidden">
+              <div class="h-2 bg-blue-500 rounded" :style="{ width: `${(city.orders / maxCityOrders) * 100}%` }" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 rounded-xl p-6 backdrop-blur-sm">
+        <h3 class="text-lg font-bold text-white mb-4">Hourly Distribution</h3>
+        <div class="flex items-end gap-1 h-32 mt-4">
+          <div v-for="h in hourlyDistribution" :key="h.hour" class="flex-1 flex flex-col items-center gap-1 group">
+             <div class="w-full bg-purple-500 rounded-t" :style="{ height: `${(h.orders / maxHourlyOrders) * 100}%`, minHeight: '4px' }"></div>
+             <span class="text-[10px] text-gray-500">{{ h.hour }}h</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 rounded-xl p-6 backdrop-blur-sm">
+        <h3 class="text-lg font-bold text-white mb-4">Misc Stats</h3>
+        <div class="grid grid-cols-2 gap-4">
+           <div>
+               <h4 class="text-sm font-semibold text-gray-400 mb-2">Currency</h4>
+               <ul class="space-y-1">
+                   <li v-for="c in currencyDistribution" :key="c.currency" class="text-sm flex justify-between">
+                       <span class="text-gray-300">{{ c.currency }}</span> <span class="text-brand-60">{{ c.orders }}</span>
+                   </li>
+               </ul>
+           </div>
+           <div>
+               <h4 class="text-sm font-semibold text-gray-400 mb-2">Installments</h4>
+               <ul class="space-y-1">
+                   <li v-for="i in installmentsDistribution" :key="i.installments" class="text-sm flex justify-between">
+                       <span class="text-gray-300">{{ i.installments }}x</span> <span class="text-brand-60">{{ i.orders }}</span>
+                   </li>
+               </ul>
+           </div>
         </div>
       </div>
     </div>
