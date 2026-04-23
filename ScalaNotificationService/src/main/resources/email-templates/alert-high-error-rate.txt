@@ -1,0 +1,12 @@
+PFSD ALERT - High validation error rate
+
+Window: {{windowStart}} -> {{windowEnd}}
+Total orders: {{total}}
+Valid: {{valid}}
+Invalid: {{invalid}}
+Deserialization errors: {{deserializationErrors}}
+
+Error rate: {{errorRatePercent}}%
+Configured threshold: {{thresholdPercent}}%
+
+Please check the validation pipeline and notifications dashboard.

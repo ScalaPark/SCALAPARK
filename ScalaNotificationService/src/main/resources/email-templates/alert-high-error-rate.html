@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PFSD Alert</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f5f7fb;font-family:Segoe UI,Arial,sans-serif;color:#1f2937;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f7fb;padding:24px 0;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="620" cellspacing="0" cellpadding="0" style="max-width:620px;background:#ffffff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;">
+            <tr>
+              <td style="background:#b91c1c;color:#ffffff;padding:18px 24px;font-size:20px;font-weight:700;">
+                PFSD Alert: High validation error rate
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:22px 24px 10px 24px;font-size:14px;line-height:1.6;">
+                A high error rate was detected in the order validation pipeline.
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 24px 24px 24px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:1px solid #e5e7eb;">
+                  <tr>
+                    <td style="padding:10px;border-bottom:1px solid #e5e7eb;background:#f9fafb;font-weight:600;">Window</td>
+                    <td style="padding:10px;border-bottom:1px solid #e5e7eb;">{{windowStart}} -> {{windowEnd}}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:10px;border-bottom:1px solid #e5e7eb;background:#f9fafb;font-weight:600;">Total orders</td>
+                    <td style="padding:10px;border-bottom:1px solid #e5e7eb;">{{total}}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:10px;border-bottom:1px solid #e5e7eb;background:#f9fafb;font-weight:600;">Valid</td>
+                    <td style="padding:10px;border-bottom:1px solid #e5e7eb;">{{valid}}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:10px;border-bottom:1px solid #e5e7eb;background:#f9fafb;font-weight:600;">Invalid</td>
+                    <td style="padding:10px;border-bottom:1px solid #e5e7eb;">{{invalid}}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:10px;border-bottom:1px solid #e5e7eb;background:#f9fafb;font-weight:600;">Deserialization errors</td>
+                    <td style="padding:10px;border-bottom:1px solid #e5e7eb;">{{deserializationErrors}}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:10px;background:#f9fafb;font-weight:700;">Error rate</td>
+                    <td style="padding:10px;font-weight:700;color:#b91c1c;">{{errorRatePercent}}% (threshold {{thresholdPercent}}%)</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 24px 24px 24px;font-size:13px;color:#4b5563;">
+                Please review Kafka topic metrics and validation rules.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

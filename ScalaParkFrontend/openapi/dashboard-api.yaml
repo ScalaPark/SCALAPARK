@@ -1,0 +1,391 @@
+openapi: 3.0.3
+info:
+  title: ScalaPark Frontend Dashboard API
+  version: 1.0.0
+  description: |
+    Minimal API contract for Operator and Analyst dashboards.
+    This contract is aligned with current Vue frontend requirements.
+servers:
+  - url: https://api.scalapark.local
+    description: Production
+  - url: http://localhost:8080
+    description: Local
+
+tags:
+  - name: Operator
+  - name: Analyst
+
+paths:
+  /api/operator/validation/window:
+    get:
+      tags: [Operator]
+      summary: Current validation window metrics
+      operationId: getOperatorValidationWindow
+      responses:
+        '200':
+          description: Validation metrics for current time window
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationWindowMetrics'
+              examples:
+                sample:
+                  value:
+                    windowStart: "2026-04-18 10:30:00"
+                    windowEnd: "2026-04-18 10:31:00"
+                    total: 150
+                    valid: 120
+                    invalid: 25
+                    deserializationErrors: 5
+
+  /api/operator/validation/history:
+    get:
+      tags: [Operator]
+      summary: Validation metrics time series
+      operationId: getOperatorValidationHistory
+      parameters:
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 20
+          description: Number of points returned
+        - in: query
+          name: bucket
+          required: false
+          schema:
+            type: string
+            enum: [1m, 5m, 15m, 1h]
+            default: 1m
+          description: Aggregation bucket
+      responses:
+        '200':
+          description: Ordered metrics points (oldest to newest)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ValidationHistoryPoint'
+              examples:
+                sample:
+                  value:
+                    - id: "metric-1713541800000-0"
+                      time: "10:30:00"
+                      total: 150
+                      valid: 120
+                      invalid: 25
+                      errors: 5
+                    - id: "metric-1713541860000-1"
+                      time: "10:31:00"
+                      total: 168
+                      valid: 137
+                      invalid: 23
+                      errors: 8
+
+  /api/operator/orders/validated:
+    get:
+      tags: [Operator]
+      summary: Latest validated orders stream snapshot
+      operationId: getOperatorValidatedOrders
+      parameters:
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        '200':
+          description: Latest orders sorted by processedAt desc
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ValidatedOrder'
+              examples:
+                sample:
+                  value:
+                    - orderId: "ORD-123"
+                      correlationId: "CORR-456"
+                      status: "VALID"
+                      errors: []
+                      processedAt: "2026-04-18T10:30:00"
+                      order:
+                        header:
+                          orderId: "ORD-123"
+                          timestamp: "2026-04-18T10:29:58"
+                          source: "WEB"
+                        customer:
+                          customerId: "USR-100"
+                          email: "user100@example.com"
+                          name: "Alice Johnson"
+                        location:
+                          country: "USA"
+                          city: "New York"
+                          address: "10 Main St"
+                        payment:
+                          method: "CREDIT_CARD"
+                          amount: 249.9
+                          currency: "USD"
+                        items:
+                          - productId: "PROD-1"
+                            quantity: 1
+                            price: 249.9
+
+  /api/analyst/daily:
+    get:
+      tags: [Analyst]
+      summary: Daily analyst KPIs
+      operationId: getAnalystDaily
+      responses:
+        '200':
+          description: Daily KPI summary for analyst dashboard
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalystDailyStats'
+              examples:
+                sample:
+                  value:
+                    totalRevenue: 187500
+                    avgOrderValue: 173.25
+                    newCustomers: 286
+                    totalOrders: 16240
+
+  /api/analyst/revenue/trend:
+    get:
+      tags: [Analyst]
+      summary: Revenue trend for last N days
+      operationId: getAnalystRevenueTrend
+      parameters:
+        - in: query
+          name: days
+          required: false
+          schema:
+            type: integer
+            minimum: 7
+            maximum: 365
+            default: 30
+      responses:
+        '200':
+          description: Daily revenue points ordered by day asc
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RevenuePoint'
+              examples:
+                sample:
+                  value:
+                    - id: "day-1"
+                      day: 1
+                      revenue: 38000
+                    - id: "day-2"
+                      day: 2
+                      revenue: 65000
+                    - id: "day-3"
+                      day: 3
+                      revenue: 34000
+
+components:
+  schemas:
+    ValidationWindowMetrics:
+      type: object
+      required:
+        - windowStart
+        - windowEnd
+        - total
+        - valid
+        - invalid
+        - deserializationErrors
+      properties:
+        windowStart:
+          type: string
+          description: Window start datetime (ISO-8601 preferred; frontend also supports yyyy-MM-dd HH:mm:ss)
+          example: "2026-04-18T10:30:00Z"
+        windowEnd:
+          type: string
+          description: Window end datetime
+          example: "2026-04-18T10:31:00Z"
+        total:
+          type: integer
+          minimum: 0
+        valid:
+          type: integer
+          minimum: 0
+        invalid:
+          type: integer
+          minimum: 0
+        deserializationErrors:
+          type: integer
+          minimum: 0
+
+    ValidationHistoryPoint:
+      type: object
+      required:
+        - id
+        - time
+        - total
+        - valid
+        - invalid
+        - errors
+      properties:
+        id:
+          type: string
+        time:
+          type: string
+          example: "10:31:00"
+        total:
+          type: integer
+          minimum: 0
+        valid:
+          type: integer
+          minimum: 0
+        invalid:
+          type: integer
+          minimum: 0
+        errors:
+          type: integer
+          minimum: 0
+
+    ValidatedOrder:
+      type: object
+      required:
+        - orderId
+        - correlationId
+        - processedAt
+      properties:
+        orderId:
+          type: string
+        correlationId:
+          type: string
+        status:
+          type: string
+          enum: [VALID, INVALID]
+        errors:
+          type: array
+          items:
+            type: string
+        processedAt:
+          type: string
+          description: Datetime string
+          example: "2026-04-18T10:30:00"
+        order:
+          $ref: '#/components/schemas/OrderDetail'
+
+    OrderDetail:
+      type: object
+      properties:
+        header:
+          $ref: '#/components/schemas/OrderHeader'
+        customer:
+          $ref: '#/components/schemas/Customer'
+        location:
+          $ref: '#/components/schemas/Location'
+        payment:
+          $ref: '#/components/schemas/Payment'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItem'
+
+    OrderHeader:
+      type: object
+      properties:
+        orderId:
+          type: string
+        timestamp:
+          type: string
+        source:
+          type: string
+
+    Customer:
+      type: object
+      properties:
+        customerId:
+          type: string
+        email:
+          type: string
+        name:
+          type: string
+
+    Location:
+      type: object
+      properties:
+        country:
+          type: string
+        city:
+          type: string
+        address:
+          type: string
+
+    Payment:
+      type: object
+      properties:
+        method:
+          type: string
+        amount:
+          type: number
+          format: double
+        currency:
+          type: string
+
+    OrderItem:
+      type: object
+      properties:
+        productId:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        price:
+          type: number
+          format: double
+
+    AnalystDailyStats:
+      type: object
+      required:
+        - totalRevenue
+        - avgOrderValue
+        - newCustomers
+        - totalOrders
+      properties:
+        totalRevenue:
+          type: number
+          format: double
+          minimum: 0
+        avgOrderValue:
+          type: number
+          format: double
+          minimum: 0
+        newCustomers:
+          type: integer
+          minimum: 0
+        totalOrders:
+          type: integer
+          minimum: 0
+
+    RevenuePoint:
+      type: object
+      required:
+        - id
+        - day
+        - revenue
+      properties:
+        id:
+          type: string
+        day:
+          type: integer
+          minimum: 1
+        revenue:
+          type: number
+          format: double
+          minimum: 0

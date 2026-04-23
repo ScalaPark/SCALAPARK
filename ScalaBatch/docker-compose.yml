@@ -1,0 +1,104 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    container_name: scalabatch-zookeeper
+    networks:
+      - scalabatch_net
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: scalabatch-kafka
+    depends_on:
+      - zookeeper
+    networks:
+      - scalabatch_net
+    ports:
+      # Host access for dev tools (kafka-console-consumer from the host, etc.).
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # Two listeners: PLAINTEXT for in-network services, PLAINTEXT_HOST for the host.
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      # Single-broker dev setup — replication factors must be 1 to avoid startup errors.
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # One-shot topic creation. cp-kafka doesn't support KAFKA_CREATE_TOPICS (that's a
+  # wurstmeister feature), so we run kafka-topics once Kafka is healthy and exit.
+  kafka-init:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: scalabatch-kafka-init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - scalabatch_net
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic orders-validated --partitions 1 --replication-factor 1 &&
+        kafka-topics --bootstrap-server kafka:9092 --create --if-not-exists --topic daily_report --partitions 1 --replication-factor 1
+    restart: "no"
+
+  mongodb:
+    image: mongo:7.0
+    container_name: scalabatch-mongodb
+    networks:
+      - scalabatch_net
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping').ok\" | grep -q 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  scalabatch:
+    build:
+      context: .
+    container_name: scalabatch-app
+    depends_on:
+      kafka:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      kafka-init:
+        condition: service_completed_successfully
+    networks:
+      - scalabatch_net
+    env_file:
+      - .env
+    environment:
+      # Override whatever the .env sets for local sbt run — inside the Compose
+      # network, Kafka is reachable only on its internal listener.
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    restart: on-failure
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
+
+networks:
+  scalabatch_net:
+    driver: bridge
+    name: scalabatch_net
+
+volumes:
+  mongo_data:

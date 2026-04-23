@@ -1,0 +1,17 @@
+[0m[[0m[31merror[0m] [0m[0m[31m[31m-- [E008] Not Found Error: C:\Users\Prueba\Documents\PFSD\ScalaAPI\app\services\DashboardKafkaBridge.scala:231:16 [0m[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m231 |[0m    (js \ name).headOption.flatMap(_.asOpt[[35mString[0m]).getOrElse(default)[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m    |[0m    ^^^^^^^^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m value headOption is not a member of play.api.libs.json.JsLookupResult[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m-- [E008] Not Found Error: C:\Users\Prueba\Documents\PFSD\ScalaAPI\app\services\DashboardKafkaBridge.scala:234:16 [0m[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m234 |[0m    (js \ name).headOption.flatMap(_.asOpt[[35mLong[0m]).getOrElse(default)[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m    |[0m    ^^^^^^^^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m value headOption is not a member of play.api.libs.json.JsLookupResult[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m-- [E008] Not Found Error: C:\Users\Prueba\Documents\PFSD\ScalaAPI\app\services\DashboardKafkaBridge.scala:237:16 [0m[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m237 |[0m    (js \ name).headOption.flatMap(_.asOpt[[35mDouble[0m]).getOrElse(default)[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m    |[0m    ^^^^^^^^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m value headOption is not a member of play.api.libs.json.JsLookupResult[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m-- [E008] Not Found Error: C:\Users\Prueba\Documents\PFSD\ScalaAPI\app\services\DashboardKafkaBridge.scala:240:16 [0m[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m240 |[0m    (js \ name).headOption.flatMap(_.asOpt[[35mSeq[0m[[35mJsObject[0m]]).getOrElse(Seq.empty)[0m
+[0m[[0m[31merror[0m] [0m[0m[31m[31m    |[0m    ^^^^^^^^^^^^^^^^^^^^^^[0m[0m
+[0m[[0m[31merror[0m] [0m[0m[31m    |[0m value headOption is not a member of play.api.libs.json.JsLookupResult[0m
+[0m[[0m[31merror[0m] [0m[0mfour errors found[0m

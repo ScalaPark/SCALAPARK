@@ -1,0 +1,25 @@
+# sbt build output
+/target/
+/project/target/
+/project/project/
+
+# Metals / Bloop / BSP
+/.bloop/
+/.metals/
+/.bsp/
+
+# IDE
+/.idea/
+*.iml
+
+# Logs and temp
+*.log
+*.tmp
+
+# Env files
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
