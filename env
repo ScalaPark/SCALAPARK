@@ -1,0 +1,5 @@
+KAFKA_BOOTSTRAP_SERVERS=localhost:29092
+MONGO_URI=mongodb+srv://tuliojr3101:tulio2005@tdse.chbgg0e.mongodb.net/PFSD
+DATABASE_NAME=PFSD
+COLLECTION_NAME=validated_orders
+COLLECTION_METRICS=validation_metrics
