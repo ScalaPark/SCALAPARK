@@ -14,6 +14,7 @@ libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.19
 libraryDependencies += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.19.1"
 libraryDependencies += "com.fasterxml.jackson.datatype" % "jackson-datatype-jsr310" % "2.19.1"
 libraryDependencies += "com.github.pureconfig" %% "pureconfig-core" % "0.17.8"
+libraryDependencies += "org.apache.poi" % "poi-ooxml" % "5.3.0"
 // Adds additional packages into Twirl
 //TwirlKeys.templateImports += "scala.ecommerce.controllers._"
 
