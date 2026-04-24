@@ -3,8 +3,12 @@ RUN apt-get update && apt-get install -y curl && \
     curl -fL https://github.com/sbt/sbt/releases/download/v1.10.11/sbt-1.10.11.tgz | tar xz -C /usr/local && \
     ln -s /usr/local/sbt/bin/sbt /usr/local/bin/sbt
 WORKDIR /app
+RUN mkdir -p /root/.sbt && echo '-java-home /opt/java/openjdk' > /root/.sbt/sbtopts
+COPY build.sbt .
+COPY project/ project/
+RUN sbt update
 COPY . .
-RUN sbt assembly
+RUN echo '-java-home /opt/java/openjdk' > .sbtopts && sbt assembly
 
 FROM eclipse-temurin:17-jre-alpine AS runner
 WORKDIR /app
