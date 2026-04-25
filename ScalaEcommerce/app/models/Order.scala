@@ -13,7 +13,7 @@ case class Payment(cardBin: Int, cVV: Int, expirationDate: LocalDateTime, curren
 
 case class Item(productId: Int, name: String, price: Int, size: Int, quantity: Int, category: String)
 
-case class Order(header: Header, customer: Customer, location: Location, payment: Payment, items: List[Item])
+case class Order(header: Header, customer: Customer, location: Location, payment: Payment, items: List[Item], totalAmount: Int)
 
 enum DocType:
   case CE, CN, NIT

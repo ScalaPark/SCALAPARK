@@ -80,3 +80,47 @@ case class AnalystLatestReport(
 )
 object AnalystLatestReport:
   given OFormat[AnalystLatestReport] = Json.format[AnalystLatestReport]
+
+case class CategoryView(id: String, name: String, revenue: Long)
+object CategoryView:
+  given OFormat[CategoryView] = Json.format[CategoryView]
+
+case class CityView(id: String, city: String, orders: Long)
+object CityView:
+  given OFormat[CityView] = Json.format[CityView]
+
+case class DepartmentView(id: String, department: String, revenue: Long)
+object DepartmentView:
+  given OFormat[DepartmentView] = Json.format[DepartmentView]
+
+case class HourBucketView(hour: Int, orders: Long)
+object HourBucketView:
+  given OFormat[HourBucketView] = Json.format[HourBucketView]
+
+case class InstallmentsBucketView(installments: Int, orders: Long)
+object InstallmentsBucketView:
+  given OFormat[InstallmentsBucketView] = Json.format[InstallmentsBucketView]
+
+case class CurrencyBucketView(currency: String, orders: Long)
+object CurrencyBucketView:
+  given OFormat[CurrencyBucketView] = Json.format[CurrencyBucketView]
+
+case class AnalystBatchReport(
+  generatedAt: String,
+  totalOrders: Long,
+  totalRevenue: Long,
+  averageRevenuePerOrder: Double,
+  averageItemsPerOrder: Double,
+  averageTicketSize: Double,
+  creditPurchaseRatio: Double,
+  topProducts: Seq[TopProductView],
+  customerSegments: Seq[SegmentView],
+  topCategoriesByRevenue: Seq[CategoryView],
+  topCitiesByOrders: Seq[CityView],
+  topDepartmentsByRevenue: Seq[DepartmentView],
+  hourlyDistribution: Seq[HourBucketView],
+  installmentsDistribution: Seq[InstallmentsBucketView],
+  currencyDistribution: Seq[CurrencyBucketView]
+)
+object AnalystBatchReport:
+  given OFormat[AnalystBatchReport] = Json.format[AnalystBatchReport]

@@ -4,7 +4,7 @@ COPY build.sbt ./
 COPY project/ project/
 RUN sbt update
 COPY . .
-RUN sbt assembly
+RUN echo '-java-home /opt/java/openjdk' > .sbtopts && sbt assembly
 
 FROM eclipse-temurin:17-jre-alpine AS runner
 WORKDIR /app

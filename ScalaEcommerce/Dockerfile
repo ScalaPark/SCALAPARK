@@ -6,5 +6,6 @@ RUN sbt stage
 FROM eclipse-temurin:17-jre AS runner
 WORKDIR /app
 COPY --from=builder /app/target/universal/stage .
+COPY dataset ./dataset
 EXPOSE 9000
 ENTRYPOINT ["bin/scalaecommerce"]

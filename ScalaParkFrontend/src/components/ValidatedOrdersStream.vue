@@ -4,7 +4,8 @@ import { onMounted, onUnmounted, ref } from 'vue'
 interface OrderHeader {
   orderId: string
   timestamp: string
-  source: string
+  sourceApp: string
+  correlationId: string
 }
 
 interface Customer {
@@ -46,18 +47,20 @@ interface OrderDetail {
   location?: Location
   payment?: Payment
   items?: OrderItem[]
+  totalAmount?: number
 }
 
 interface ValidatedOrder {
   orderId: string
   correlationId: string
-  status?: 'VALID' | 'INVALID'
+  status?: 'VALID' | 'INVALID' | 'DESERIALIZATION_ERROR'
   errors?: string[]
   processedAt: string
   order?: OrderDetail
 }
 
 const orders = ref<ValidatedOrder[]>([])
+const expandedOrders = ref<Set<string>>(new Set())
 let interval: ReturnType<typeof setInterval> | null = null
 
 const parseDate = (raw: string) => {
@@ -126,10 +129,11 @@ onUnmounted(() => {
             : 'bg-gray-800/40 border-gray-700/30',
         ]"
       >
+        <!-- Row 1: main fields -->
         <div class="grid grid-cols-4 gap-4 text-sm stream-main-grid">
           <div>
             <div class="text-xs text-gray-500 mb-1">Order ID</div>
-            <div class="text-[#00ff88] font-mono">{{ order.orderId }}</div>
+            <div class="text-[#00ff88] font-mono text-xs truncate">{{ order.orderId }}</div>
           </div>
           <div>
             <div class="text-xs text-gray-500 mb-1">Customer</div>
@@ -138,7 +142,7 @@ onUnmounted(() => {
             </div>
           </div>
           <div>
-            <div class="text-xs text-gray-500 mb-1">Amount</div>
+            <div class="text-xs text-gray-500 mb-1">Total Amount</div>
             <div class="text-gray-300">{{ formatAmount(order) }}</div>
           </div>
           <div>
@@ -150,8 +154,9 @@ onUnmounted(() => {
           class="mt-3 pt-3 border-t border-gray-700/50 grid grid-cols-5 gap-4 text-xs stream-meta-grid"
         >
           <div>
-            <span class="text-gray-500">Location:</span>
-            <span class="text-gray-400"> {{ formatLocation(order) }}</span>
+            <span class="text-gray-500">Customer: </span>
+            <span class="text-gray-400">{{ order.order?.customer?.email ?? 'N/A' }}</span>
+            <span v-if="order.order?.customer?.docType" class="ml-1 text-gray-600">({{ order.order.customer.docType }})</span>
           </div>
           <div>
             <span class="text-gray-500">Payment:</span>
@@ -173,6 +178,34 @@ onUnmounted(() => {
               {{ order.status ?? 'UNKNOWN' }}
             </span>
           </div>
+        </div>
+
+        <!-- Row 3: items (collapsible) -->
+        <div v-if="order.order?.items && order.order.items.length > 0" class="mt-3 pt-3 border-t border-gray-700/50">
+          <button
+            class="text-xs text-gray-500 hover:text-gray-300 transition-colors flex items-center gap-1"
+            @click="toggleItems(order.orderId)"
+          >
+            <span>{{ expandedOrders.has(order.orderId) ? '▾' : '▸' }}</span>
+            <span>Items ({{ order.order.items.length }})</span>
+          </button>
+          <div v-show="expandedOrders.has(order.orderId)" class="mt-2 space-y-1">
+            <div
+              v-for="item in order.order.items"
+              :key="item.productId"
+              class="grid grid-cols-4 gap-2 text-xs text-gray-400 bg-gray-900/40 rounded px-2 py-1"
+            >
+              <span class="truncate">{{ item.name }}</span>
+              <span class="text-gray-500">{{ item.category }}</span>
+              <span>${{ item.price.toLocaleString() }} × {{ item.quantity }}</span>
+              <span class="text-right text-gray-300">${{ (item.price * item.quantity).toLocaleString() }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Errors (INVALID orders) -->
+        <div v-if="order.errors && order.errors.length > 0" class="mt-2 text-xs text-red-400/80">
+          {{ order.errors.join(' · ') }}
         </div>
       </div>
     </div>
