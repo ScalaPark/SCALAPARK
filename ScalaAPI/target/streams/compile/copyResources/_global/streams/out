@@ -1,0 +1,4 @@
+[debug] Copy resource mappings: 
+[debug] 	(/home/alejo/Desktop/PDFS/SCALAPARK/ScalaAPI/conf/application.conf,/home/alejo/Desktop/PDFS/SCALAPARK/ScalaAPI/target/scala-3.3.4/classes/application.conf)
+[debug] 	(/home/alejo/Desktop/PDFS/SCALAPARK/ScalaAPI/conf/kafka-intro.conf,/home/alejo/Desktop/PDFS/SCALAPARK/ScalaAPI/target/scala-3.3.4/classes/kafka-intro.conf)
+[debug] 	(/home/alejo/Desktop/PDFS/SCALAPARK/ScalaAPI/conf/routes,/home/alejo/Desktop/PDFS/SCALAPARK/ScalaAPI/target/scala-3.3.4/classes/routes)
