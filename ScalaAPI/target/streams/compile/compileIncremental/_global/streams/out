@@ -1,6 +1,0 @@
-[debug] [zinc] IncrementalCompile -----------
-[debug] IncrementalCompile.incrementalCompile
-[debug] previous = Stamps for: 50 products, 10 sources, 9 libraries
-[debug] current source = Set(${BASE}/app/controllers/DashboardController.scala, ${BASE}/app/services/DashboardKafkaBridge.scala, ${BASE}/app/controllers/HealthController.scala, ${BASE}/target/scala-3.3.4/routes/main/router/Routes.scala, ${BASE}/target/scala-3.3.4/routes/main/scalapark/api/controllers/ReverseRoutes.scala, ${BASE}/app/models/DashboardModels.scala, ${BASE}/app/Module.scala, ${BASE}/target/scala-3.3.4/routes/main/scalapark/api/controllers/javascript/JavaScriptReverseRoutes.scala, ${BASE}/target/scala-3.3.4/routes/main/scalapark/api/controllers/routes.java, ${BASE}/target/scala-3.3.4/routes/main/router/RoutesPrefix.scala)
-[debug] > initialChanges = InitialChanges(Changes(added = Set(), removed = Set(), changed = Set(), unmodified = ...),Set(),Set(),API Changes: Set())
-[debug] No changes
