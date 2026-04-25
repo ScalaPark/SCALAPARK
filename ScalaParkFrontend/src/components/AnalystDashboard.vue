@@ -18,6 +18,17 @@ interface Product {
   sales: number
 }
 
+interface Category {
+  id: string
+  name: string
+  revenue: number
+}
+interface City {
+  id: string
+  name: string
+  orders: number
+}
+
 interface Segment {
   id: string
   name: string
@@ -57,18 +68,25 @@ const dailyStats = ref<DailyStats>({
   avgOrderValue: 0,
   newCustomers: 0,
   totalOrders: 0,
-  averageItemsPerOrder: 0,
-  averageTicketSize: 0,
-  creditPurchaseRatio: 0
 })
 
 const topProducts = ref<Product[]>([])
+const topCategories = ref<Category[]>([])
+const topCities = ref<City[]>([])
+
 const customerSegments = ref<Segment[]>([])
 const topCategories = ref<Category[]>([])
 const topCities = ref<City[]>([])
 const hourlyDistribution = ref<Hour[]>([])
 const installmentsDistribution = ref<Installment[]>([])
 const currencyDistribution = ref<Currency[]>([])
+
+const reportMeta = ref({
+  generatedAt: '',
+  averageItemsPerOrder: 0,
+  averageTicketSize: 0,
+  creditPurchaseRatio: 0,
+})
 
 let statsInterval: ReturnType<typeof setInterval> | null = null
 let stream: EventSource | null = null
@@ -97,7 +115,7 @@ const donutStyle = computed(() => {
   const c2 = customerSegments.value[1]?.color ?? '#ff4fd8'
   const c3 = customerSegments.value[2]?.color ?? '#00d4ff'
   return {
-    background: `conic-gradient(${c1} 0% ${a}%, ${c2} ${a}% ${a + b}%, ${c3} ${a + b}% ${a + b + c}%)`
+    background: `conic-gradient(${c1} 0% ${a}%, ${c2} ${a}% ${a + b}%, ${c3} ${a + b}% ${a + b + c}%)`,
   }
 })
 
@@ -116,7 +134,13 @@ const fetchLatestReport = async () => {
     const response = await fetch('/api/analyst/report/latest')
     if (!response.ok) return
     const report = (await response.json()) as {
+      generatedAt: string
+      averageItemsPerOrder: number
+      averageTicketSize: number
+      creditPurchaseRatio: number
       topProducts: Product[]
+      topCategories: Category[]
+      topCities: City[]
       customerSegments: Segment[]
       topCategories: Category[]
       topCities: City[]
@@ -125,12 +149,15 @@ const fetchLatestReport = async () => {
       currencyDistribution: Currency[]
     }
     topProducts.value = report.topProducts ?? []
-    customerSegments.value = report.customerSegments ?? []
     topCategories.value = report.topCategories ?? []
     topCities.value = report.topCities ?? []
-    hourlyDistribution.value = report.hourlyDistribution ?? []
-    installmentsDistribution.value = report.installmentsDistribution ?? []
-    currencyDistribution.value = report.currencyDistribution ?? []
+    customerSegments.value = report.customerSegments ?? []
+    reportMeta.value = {
+      generatedAt: report.generatedAt || new Date().toISOString(),
+      averageItemsPerOrder: report.averageItemsPerOrder || 0,
+      averageTicketSize: report.averageTicketSize || 0,
+      creditPurchaseRatio: report.creditPurchaseRatio || 0,
+    }
   } catch {
     // Keep previous values while backend reconnects.
   }
@@ -161,21 +188,21 @@ onUnmounted(() => {
 
 <template>
   <div class="flex-1 overflow-auto p-8 analyst-shell">
-    <h1 class="text-4xl font-bold text-white mb-8 tracking-tight">
-      BUSINESS ANALYTICS
-    </h1>
+    <h1 class="text-4xl font-bold text-white mb-8 tracking-tight">BUSINESS ANALYTICS</h1>
 
     <div class="grid grid-cols-4 gap-6 mb-8 analyst-metrics-grid">
       <MetricCard
         title="Total Daily Revenue"
         :value="`$${dailyStats.totalRevenue.toLocaleString()}`"
-        subtitle="April 19, 2026"
+        :subtitle="
+          reportMeta.generatedAt ? new Date(reportMeta.generatedAt).toLocaleDateString() : 'N/A'
+        "
         icon="total"
       />
 
       <MetricCard
-        title="Avg. Order Value"
-        :value="`$${dailyStats.avgOrderValue.toFixed(2)}`"
+        title="Avg. Ticket Size"
+        :value="`$${reportMeta.averageTicketSize.toFixed(2)}`"
         icon="valid"
       />
 
@@ -193,26 +220,22 @@ onUnmounted(() => {
       />
 
       <MetricCard
-        title="Avg Items Per Order"
-        :value="dailyStats.averageItemsPerOrder.toFixed(1)"
+        title="Avg. Items Per Order"
+        :value="reportMeta.averageItemsPerOrder.toFixed(1)"
         icon="valid"
-      />
-
-      <MetricCard
-        title="Avg Ticket Size"
-        :value="`$${dailyStats.averageTicketSize.toFixed(2)}`"
-        icon="total"
       />
 
       <MetricCard
         title="Credit Purchase Ratio"
-        :value="`${(dailyStats.creditPurchaseRatio * 100).toFixed(1)}%`"
+        :value="`${(reportMeta.creditPurchaseRatio * 100).toFixed(1)}%`"
         icon="valid"
       />
     </div>
 
-    <div class="grid analyst-grid-2 gap-6">
-      <div class="bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 rounded-xl p-6 backdrop-blur-sm">
+    <div class="grid analyst-grid-2 gap-6 mb-6">
+      <div
+        class="bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 rounded-xl p-6 backdrop-blur-sm"
+      >
         <h3 class="text-lg font-bold text-white mb-4">Top 5 Products</h3>
         <div class="space-y-3">
           <div v-for="product in topProducts" :key="product.id" class="space-y-2">
@@ -221,13 +244,46 @@ onUnmounted(() => {
               <span class="text-gray-400">{{ product.sales }}</span>
             </div>
             <div class="h-2 bg-gray-700 rounded overflow-hidden">
-              <div class="h-2 bg-brand-60 rounded" :style="{ width: `${(product.sales / maxProductSales) * 100}%` }" />
+              <div
+                class="h-2 bg-brand-60 rounded"
+                :style="{ width: `${(product.sales / maxProductSales) * 100}%` }"
+              />
             </div>
           </div>
         </div>
       </div>
 
-      <div class="bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 rounded-xl p-6 backdrop-blur-sm">
+      <div
+        class="bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 rounded-xl p-6 backdrop-blur-sm"
+      >
+        <h3 class="text-lg font-bold text-white mb-4">Top Categories & Cities</h3>
+        <div class="space-y-4">
+          <div>
+            <h4 class="text-sm font-semibold text-gray-400 mb-2">Categories by Revenue</h4>
+            <div class="space-y-2">
+              <div v-for="cat in topCategories" :key="cat.id" class="flex justify-between text-sm">
+                <span class="text-gray-300">{{ cat.name }}</span>
+                <span class="text-[#00ff88]">${{ cat.revenue.toLocaleString() }}</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <h4 class="text-sm font-semibold text-gray-400 mb-2">Cities by Orders</h4>
+            <div class="space-y-2">
+              <div v-for="city in topCities" :key="city.id" class="flex justify-between text-sm">
+                <span class="text-gray-300">{{ city.name }}</span>
+                <span class="text-[#00d4ff]">{{ city.orders.toLocaleString() }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid analyst-grid-2 gap-6">
+      <div
+        class="bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 rounded-xl p-6 backdrop-blur-sm"
+      >
         <h3 class="text-lg font-bold text-white mb-4">Customer Segmentation</h3>
         <div class="flex items-center gap-6 analyst-segment-layout">
           <div class="donut-wrap">
@@ -236,7 +292,11 @@ onUnmounted(() => {
           </div>
 
           <div class="space-y-3 flex-1">
-            <div v-for="segment in customerSegments" :key="segment.id" class="flex items-center justify-between text-sm">
+            <div
+              v-for="segment in customerSegments"
+              :key="segment.id"
+              class="flex items-center justify-between text-sm"
+            >
               <div class="flex items-center gap-2">
                 <span class="w-3 h-3 rounded" :style="{ backgroundColor: segment.color }" />
                 <span class="text-gray-300">{{ segment.name }}</span>

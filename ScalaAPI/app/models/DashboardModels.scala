@@ -58,11 +58,24 @@ case class SegmentView(
 object SegmentView:
   given OFormat[SegmentView] = Json.format[SegmentView]
 
+case class TopCategoryView(id: String, name: String, revenue: Long)
+object TopCategoryView:
+  given OFormat[TopCategoryView] = Json.format[TopCategoryView]
+
+case class TopCityView(id: String, name: String, orders: Long)
+object TopCityView:
+  given OFormat[TopCityView] = Json.format[TopCityView]
+
 case class AnalystLatestReport(
   generatedAt: String,
   totalOrders: Long,
   totalRevenue: Long,
+  averageItemsPerOrder: Double,
+  averageTicketSize: Double,
+  creditPurchaseRatio: Double,
   topProducts: Seq[TopProductView],
+  topCategories: Seq[TopCategoryView],
+  topCities: Seq[TopCityView],
   customerSegments: Seq[SegmentView]
 )
 object AnalystLatestReport:

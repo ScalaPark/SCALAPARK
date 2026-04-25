@@ -1,10 +1,6 @@
-FROM eclipse-temurin:17 AS builder
-RUN apt-get update && apt-get install -y curl && \
-    curl -fL https://github.com/sbt/sbt/releases/download/v1.10.11/sbt-1.10.11.tgz | tar xz -C /usr/local && \
-    ln -s /usr/local/sbt/bin/sbt /usr/local/bin/sbt
+FROM sbtscala/scala-sbt:eclipse-temurin-17.0.15_6_1.12.9_2.13.18 AS builder
 WORKDIR /app
-RUN mkdir -p /root/.sbt && echo '-java-home /opt/java/openjdk' > /root/.sbt/sbtopts
-COPY build.sbt .
+COPY build.sbt ./
 COPY project/ project/
 RUN sbt update
 COPY . .

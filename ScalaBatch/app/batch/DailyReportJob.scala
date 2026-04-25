@@ -46,7 +46,7 @@ class DailyReportJob(spark: SparkSession, repo: BatchOrderRepository) {
     }
 
     val ds: Dataset[BatchOrderRecord] = spark.createDataset(data)
-    ds.cache() // reused across many aggregations below
+    ds.cache() 
 
     val totalOrders = ds.count()
     val totalRevenue = ds.agg(sum("revenue")).first().getLong(0)

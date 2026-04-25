@@ -172,6 +172,28 @@ class DashboardKafkaBridge @Inject() () extends Logging:
           )
       }
 
+      val averageItemsPerOrder = fieldDouble(js, "averageItemsPerOrder")
+      val averageTicketSize = fieldDouble(js, "averageTicketSize")
+      val creditPurchaseRatio = fieldDouble(js, "creditPurchaseRatio")
+
+      val topCategories = fieldArray(js, "topCategoriesByRevenue").zipWithIndex.map {
+        case (c, idx) =>
+          TopCategoryView(
+            id = s"cat-${idx + 1}",
+            name = fieldString(c, "category", s"Category-${idx + 1}"),
+            revenue = fieldLong(c, "revenue")
+          )
+      }
+
+      val topCities = fieldArray(js, "topCitiesByOrders").zipWithIndex.map {
+        case (c, idx) =>
+          TopCityView(
+            id = s"city-${idx + 1}",
+            name = fieldString(c, "city", s"City-${idx + 1}"),
+            orders = fieldLong(c, "orders")
+          )
+      }
+
       val docDist = fieldArray(js, "docTypeDistribution")
       val totalDocs = docDist.map(o => fieldLong(o, "orders")).sum
       val palette = Seq("#00ff88", "#ff4fd8", "#00d4ff", "#fbbf24", "#60a5fa")
@@ -190,7 +212,12 @@ class DashboardKafkaBridge @Inject() () extends Logging:
         generatedAt = fieldString(js, "generatedAt"),
         totalOrders = totalOrders,
         totalRevenue = totalRevenue,
+        averageItemsPerOrder = averageItemsPerOrder,
+        averageTicketSize = averageTicketSize,
+        creditPurchaseRatio = creditPurchaseRatio,
         topProducts = topProducts,
+        topCategories = topCategories,
+        topCities = topCities,
         customerSegments = segments
       )
       latestReportRef.set(Some(report))
@@ -218,7 +245,7 @@ class DashboardKafkaBridge @Inject() () extends Logging:
     props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId)
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, classOf[StringDeserializer].getName)
     props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, classOf[StringDeserializer].getName)
-    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest")
+    props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
     props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true")
     new KafkaConsumer[String, String](props)
 

@@ -52,7 +52,12 @@ class DashboardController @Inject() (
         generatedAt = "",
         totalOrders = 0L,
         totalRevenue = 0L,
+        averageItemsPerOrder = 0.0,
+        averageTicketSize = 0.0,
+        creditPurchaseRatio = 0.0,
         topProducts = Seq.empty,
+        topCategories = Seq.empty,
+        topCities = Seq.empty,
         customerSegments = Seq.empty
       )
     )

@@ -75,25 +75,18 @@ const formatTime = (raw: string) => {
 }
 
 const formatAmount = (order: ValidatedOrder) => {
-  const amount = order.order?.totalAmount
-  const currency = order.order?.payment?.currency ?? ''
-  if (typeof amount !== 'number') return 'N/A'
-  return `$${amount.toLocaleString()} ${currency}`
+  const items = order.order?.items ?? []
+  const amount = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const currency = order.order?.payment?.currency ?? 'USD'
+  if (amount === 0 && items.length === 0) return `N/A ${currency}`
+  return `$${amount.toFixed(2)} ${currency}`
 }
 
 const formatLocation = (order: ValidatedOrder) => {
   const city = order.order?.location?.city
-  const department = order.order?.location?.department
-  if (!city && !department) return 'N/A'
-  return [city, department].filter(Boolean).join(', ')
-}
-
-const toggleItems = (orderId: string) => {
-  if (expandedOrders.value.has(orderId)) {
-    expandedOrders.value.delete(orderId)
-  } else {
-    expandedOrders.value.add(orderId)
-  }
+  const market = order.order?.location?.market
+  if (!city && !market) return 'N/A'
+  return [city, market].filter(Boolean).join(', ')
 }
 
 const fetchOrders = async () => {
@@ -118,7 +111,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 rounded-xl p-6 backdrop-blur-sm">
+  <div
+    class="bg-gradient-to-br from-gray-900/80 to-gray-800/40 border border-gray-700/50 rounded-xl p-6 backdrop-blur-sm"
+  >
     <div class="mb-4">
       <h3 class="text-lg font-bold text-white">Real-Time Stream: Validated Orders</h3>
     </div>
@@ -131,7 +126,7 @@ onUnmounted(() => {
           'border rounded-lg p-4 transition-all',
           idx === 0
             ? 'bg-[#00ff88]/10 border-[#00ff88]/30 animate-pulse'
-            : 'bg-gray-800/40 border-gray-700/30'
+            : 'bg-gray-800/40 border-gray-700/30',
         ]"
       >
         <!-- Row 1: main fields -->
@@ -141,17 +136,10 @@ onUnmounted(() => {
             <div class="text-[#00ff88] font-mono text-xs truncate">{{ order.orderId }}</div>
           </div>
           <div>
-            <div class="text-xs text-gray-500 mb-1">Status</div>
-            <span
-              :class="[
-                'text-xs font-semibold px-2 py-0.5 rounded-full',
-                order.status === 'VALID'
-                  ? 'bg-[#00ff88]/20 text-[#00ff88]'
-                  : 'bg-red-500/20 text-red-400'
-              ]"
-            >
-              {{ order.status ?? 'UNKNOWN' }}
-            </span>
+            <div class="text-xs text-gray-500 mb-1">Customer</div>
+            <div class="text-gray-300">
+              {{ order.order?.customer?.email ?? order.order?.customer?.docNumber ?? 'N/A' }}
+            </div>
           </div>
           <div>
             <div class="text-xs text-gray-500 mb-1">Total Amount</div>
@@ -162,23 +150,32 @@ onUnmounted(() => {
             <div class="text-gray-300">{{ formatTime(order.processedAt) }}</div>
           </div>
         </div>
-
-        <!-- Row 2: meta fields -->
-        <div class="mt-3 pt-3 border-t border-gray-700/50 grid grid-cols-3 gap-4 text-xs stream-meta-grid">
+        <div
+          class="mt-3 pt-3 border-t border-gray-700/50 grid grid-cols-5 gap-4 text-xs stream-meta-grid"
+        >
           <div>
             <span class="text-gray-500">Customer: </span>
             <span class="text-gray-400">{{ order.order?.customer?.email ?? 'N/A' }}</span>
             <span v-if="order.order?.customer?.docType" class="ml-1 text-gray-600">({{ order.order.customer.docType }})</span>
           </div>
           <div>
-            <span class="text-gray-500">Location: </span>
-            <span class="text-gray-400">{{ formatLocation(order) }}</span>
+            <span class="text-gray-500">Payment:</span>
+            <span class="text-gray-400"> {{ order.order?.payment?.installments ? `Card (${order.order.payment.installments}x)` : 'N/A' }}</span>
           </div>
           <div>
-            <span class="text-gray-500">Payment: </span>
-            <span class="text-gray-400">
-              {{ order.order?.payment?.currency ?? 'N/A' }}
-              <span v-if="order.order?.payment?.installments"> · {{ order.order.payment.installments }} cuotas</span>
+            <span class="text-gray-500">Items:</span>
+            <span class="text-gray-400"> {{ order.order?.items?.length ?? 0 }} items</span>
+          </div>
+          <div>
+            <span class="text-gray-500">Phone/IP:</span>
+            <span class="text-gray-400"> {{ order.order?.customer?.phone ?? 'N/A' }} / {{ order.order?.customer?.ipAddress ?? 'N/A' }}</span>
+          </div>
+          <div>
+            <span class="text-gray-500">Status:</span>
+            <span
+              :class="(order.status ?? 'INVALID') === 'VALID' ? 'text-[#00ff88]' : 'text-red-400'"
+            >
+              {{ order.status ?? 'UNKNOWN' }}
             </span>
           </div>
         </div>

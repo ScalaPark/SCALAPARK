@@ -7,7 +7,7 @@
 /.bloop/
 /.metals/
 /.bsp/
-
+.vscode/
 # IDE
 /.idea/
 *.iml
